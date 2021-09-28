@@ -6,4 +6,5 @@ set -e # Make sure the script stops running when we hit an error
 if [ ! -d $PWD/.repo ]; then
     repo init -u EnovationExternal@vs-ssh.visualstudio.com:v3/EnovationExternal/HCEE/hlio-rcd-manifest
 fi
+
 repo sync

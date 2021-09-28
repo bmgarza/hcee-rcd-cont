@@ -3,4 +3,13 @@
 # Files associated with the Yocto build environment
 layers/
 build-*/
+PRServer_*
+tmp*/
+ar*/
+cc*
+sh-thd.*
+man*
+
+# Directory for building the yocto build Dockerfile
+tmp-dockerfile/
 
