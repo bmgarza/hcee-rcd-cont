@@ -1,0 +1,6 @@
+.repo/
+
+# Files associated with the Yocto build environment
+layers/
+build-*/
+
