@@ -1,0 +1,3 @@
+[submodule "yocto-dockerfiles"]
+	path = yocto-dockerfiles
+	url = git@github.com:bmgarza/yocto-dockerfiles.git
