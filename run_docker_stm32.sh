@@ -24,13 +24,12 @@ if [[ "$do_make" -eq 1 ]]; then
         --env-file $environment_file                        \
         -v $PWD:/tmp                                        \
         -w /tmp                                             \
-        yocto-build:1.2 bash -c "./docker_stm32_run_hlio_build.sh"
+        yocto-build bash -c "./docker_stm32_run_hlio_build.sh"
 else
     docker run --rm -it                                     \
         --name $container_name                              \
         --env-file $environment_file                        \
         -v $PWD:/tmp                                        \
         -w /tmp                                             \
-        yocto-build:1.2 bash --init-file "./docker_stm32_setup_yocto_environment.sh"
+        yocto-build bash --init-file "./docker_stm32_setup_yocto_environment.sh"
 fi
-
