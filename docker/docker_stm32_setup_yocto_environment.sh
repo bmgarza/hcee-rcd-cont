@@ -7,4 +7,3 @@
 source layers/meta-st/scripts/envsetup.sh < <(yes)
 
 bitbake-layers add-layer ../layers/meta-st/meta-hlio-rcd/
-

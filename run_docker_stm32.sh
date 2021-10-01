@@ -21,17 +21,6 @@ ensure_directory() {
     fi
 }
 
-run_docker_container() {
-    docker run --rm -it                                     \
-        --name $container_name                              \
-        --env FORCE_SSTATE_CACHEPREFIX=$container_home_dir  \
-        --env-file $environment_file_default                \
-        --env-file $environment_file                        \
-        -v $PWD:$container_home_dir                         \
-        -w $container_home_dir                              \
-        yocto-build $@
-}
-
 ################################################################################
 ## Main portion of the function                                               ##
 ################################################################################
@@ -52,6 +41,7 @@ command=$2
 container_name="yocto-build-cont"
 environment_file_default="./docker/docker_stm32_openstlinux_default.env"
 container_home_dir="/tmp"
+sstate_cache_mirror="http://192.168.1.100:8080/oe-sstate-cache"
 
 # Make sure that we set the correct environment variables for the build environment that we want
 case $environment in
@@ -64,6 +54,18 @@ case $environment in
     "") help_dialog; exit;;
     *) echo "First argument isn't a valid environment to build"; exit ;;
 esac
+
+run_docker_container() {
+    docker run --rm -it                                     \
+        --name $container_name                              \
+        --env FORCE_SSTATE_CACHEPREFIX=$container_home_dir  \
+        --env FORCE_SSTATE_MIRROR_URL=$sstate_cache_mirror  \
+        --env-file $environment_file_default                \
+        --env-file $environment_file                        \
+        -v $PWD:$container_home_dir                         \
+        -w $container_home_dir                              \
+        yocto-build $@
+}
 
 # Run the correct docker run command based on what the argument that was passed through to this script is
 case $command in
