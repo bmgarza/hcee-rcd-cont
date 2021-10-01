@@ -50,14 +50,14 @@ environment=$1
 command=$2
 
 container_name="yocto-build-cont"
-environment_file_default="./docker_stm32_openstlinux_default.env"
+environment_file_default="./docker/docker_stm32_openstlinux_default.env"
 container_home_dir="/tmp"
 
 # Make sure that we set the correct environment variables for the build environment that we want
 case $environment in
-    "eglfs") environment_file="./docker_stm32_openstlinux_eglfs.env" ;;
-    "weston") environment_file="./docker_stm32_openstlinux_weston.env" ;;
-    "x11") environment_file="./docker_stm32_openstlinux_x11.env" ;;
+    "eglfs") environment_file="./docker/docker_stm32_openstlinux_eglfs.env" ;;
+    "weston") environment_file="./docker/docker_stm32_openstlinux_weston.env" ;;
+    "x11") environment_file="./docker/docker_stm32_openstlinux_x11.env" ;;
     # TODO: BMG (Sep. 30, 2021) This is probably not the right way to do this... Might want to change the order of the
     #  arguments that so the command comes first and the environment comes second
     "clean") clean_bitbake; exit ;;
@@ -71,7 +71,7 @@ case $command in
     #  to do this in a cleaner way
     "make" | "build")
         # Runs a script to go through and do a build automatically
-        run_docker_container bash -c "./docker_stm32_run_hlio_build.sh"
+        run_docker_container bash -c "./docker/docker_stm32_run_hlio_build.sh"
         ;;
     "noargs")
         # Just runs the docker container without setting up the environment or anything. Mainly for running the
@@ -80,7 +80,7 @@ case $command in
         ;;
     "")
         # Runs a script to setup the bitbake environment so that you can run individual bitbake commands immediately
-        run_docker_container bash --init-file "./docker_stm32_setup_yocto_environment.sh"
+        run_docker_container bash --init-file "./docker/docker_stm32_setup_yocto_environment.sh"
         ;;
     *) echo "Second argument isn't a valid command for the build"; exit ;;
 esac
