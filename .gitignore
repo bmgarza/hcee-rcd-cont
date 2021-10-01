@@ -9,6 +9,10 @@ ar*/
 cc*
 sh-thd.*
 man*
+jam*
+
+# Shared SState cache for all builds that are going to be made
+oe-sstate-cache/
 
 # Directory for building the yocto build Dockerfile
 tmp-dockerfile/
