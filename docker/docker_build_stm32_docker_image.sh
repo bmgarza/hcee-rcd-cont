@@ -9,6 +9,9 @@ if ! $(grep --quiet -x $(basename $0) < <(ls)); then
     exit 1
 fi
 
+# Make sure that we pull the yocto-dockerfiles respository before we try to build the docker image
+git submodule update --init
+
 # At this point now we know that the submodule has been properly initialized and that we are in the root of the
 #  repository
 cd yocto-dockerfiles/
