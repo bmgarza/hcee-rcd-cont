@@ -21,6 +21,12 @@ ensure_directory() {
     fi
 }
 
+check_url_OK() {
+    url_provided=$1
+
+    grep "200 OK" --quiet < <(curl --silent --head $url_provided)
+}
+
 ################################################################################
 ## Main portion of the function                                               ##
 ################################################################################
@@ -38,10 +44,46 @@ fi
 environment=$1
 command=$2
 
+docker_image_name="yocto-build"
 container_name="yocto-build-cont"
 environment_file_default="./docker/docker_stm32_openstlinux_default.env"
 container_home_dir="/tmp"
-sstate_cache_mirror="http://192.168.1.100:8080/oe-sstate-cache"
+sstate_cache_url="http://192.168.1.100/oe-sstate-cache"
+
+# TODO: BMG (Oct. 04, 2021) This is currently not used but at some point we are going to set this variable based on
+#  something to determine if we are a server node or not
+is_server=0
+
+base_docker_container_cmd() {
+    docker run --rm -it                                     \
+        --name $container_name                              \
+        --env FORCE_SSTATE_CACHEPREFIX=$container_home_dir  \
+        --env FORCE_SSTATE_MIRROR_URL=$sstate_cache_url     \
+        --env-file $environment_file_default                \
+        --env-file $environment_file                        \
+        -v $PWD:$container_home_dir                         \
+        -w $container_home_dir                              \
+        $@
+}
+
+# NOTE: BMG (Oct. 04, 2021) This function isn't currently used but the idea is that it would use a different set of
+#  environment variables or arguments whenever we are running in a server in case that is something that would be useful
+server_docker_container_cmd() {
+    base_docker_container_cmd \
+        $@
+}
+
+run_docker_container() {
+    if [ $is_server != 0 ]; then
+        # We are currently operating on a server node
+        server_docker_container_cmd \
+            $docker_image_name $@
+    else
+        # We are not a server
+        base_docker_container_cmd \
+            $docker_image_name $@
+    fi
+}
 
 # Make sure that we set the correct environment variables for the build environment that we want
 case $environment in
@@ -55,18 +97,6 @@ case $environment in
     *) echo "First argument isn't a valid environment to build"; exit ;;
 esac
 
-run_docker_container() {
-    docker run --rm -it                                     \
-        --name $container_name                              \
-        --env FORCE_SSTATE_CACHEPREFIX=$container_home_dir  \
-        --env FORCE_SSTATE_MIRROR_URL=$sstate_cache_mirror  \
-        --env-file $environment_file_default                \
-        --env-file $environment_file                        \
-        -v $PWD:$container_home_dir                         \
-        -w $container_home_dir                              \
-        yocto-build $@
-}
-
 # Run the correct docker run command based on what the argument that was passed through to this script is
 case $command in
     # TODO: BMG (Sep. 30, 2021) There has to be a better way of doing this, haven't put in enough time to figure out how
@@ -74,6 +104,8 @@ case $command in
     "make" | "build")
         # Runs a script to go through and do a build automatically
         run_docker_container bash -c "./docker/docker_stm32_run_hlio_build.sh"
+        # Clean up after the bitbake environment has been run
+        clean_bitbake
         ;;
     "noargs")
         # Just runs the docker container without setting up the environment or anything. Mainly for running the
@@ -86,6 +118,3 @@ case $command in
         ;;
     *) echo "Second argument isn't a valid command for the build"; exit ;;
 esac
-
-# Clean up after the bitbake environment has been setup
-clean_bitbake
