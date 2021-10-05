@@ -46,7 +46,6 @@ command=$2
 
 docker_image_name="yocto-build"
 container_name="yocto-build-cont"
-environment_file_default="./docker/docker_stm32_openstlinux_default.env"
 container_home_dir="/tmp"
 sstate_cache_url="http://192.168.1.100/oe-sstate-cache"
 
@@ -59,8 +58,8 @@ base_docker_container_cmd() {
         --name $container_name                              \
         --env FORCE_SSTATE_CACHEPREFIX=$container_home_dir  \
         --env FORCE_SSTATE_MIRROR_URL=$sstate_cache_url     \
-        --env-file $environment_file_default                \
         --env-file $environment_file                        \
+        --user "$UID"                                       \
         -v $PWD:$container_home_dir                         \
         -w $container_home_dir                              \
         $@
@@ -87,9 +86,9 @@ run_docker_container() {
 
 # Make sure that we set the correct environment variables for the build environment that we want
 case $environment in
-    "eglfs") environment_file="./docker/docker_stm32_openstlinux_eglfs.env" ;;
-    "weston") environment_file="./docker/docker_stm32_openstlinux_weston.env" ;;
-    "x11") environment_file="./docker/docker_stm32_openstlinux_x11.env" ;;
+    "sdk") environment_file="./docker/docker_stm32_openstlinux_sdk.env" ;;
+    "display") environment_file="./docker/docker_stm32_openstlinux_display.env" ;;
+    "legacy") environment_file="./docker/docker_stm32_openstlinux_legacy.env" ;;
     # TODO: BMG (Sep. 30, 2021) This is probably not the right way to do this... Might want to change the order of the
     #  arguments that so the command comes first and the environment comes second
     "clean") clean_bitbake; exit ;;

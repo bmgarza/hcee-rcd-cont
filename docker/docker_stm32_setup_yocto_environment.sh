@@ -11,4 +11,6 @@ source layers/meta-st/scripts/envsetup.sh < <(yes)
 #  downloaded
 sed -i 's#file:\/\/\\\.\\\*#file:\/\/\.\*#g' conf/site.conf 
 
-bitbake-layers add-layer ../layers/meta-st/meta-hlio-rcd/
+if [[ -x ${LEGACY} ]] && [$LEGACY -eq 1 ]; then
+    bitbake-layers add-layer ../layers/meta-st/meta-hlio-rcd/
+fi
