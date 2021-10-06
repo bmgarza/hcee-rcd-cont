@@ -5,9 +5,21 @@ development environment for the Real Cost Display.
 
 ## Prerequisites
 
-The only prerequisite for using the scripts in this repository is having docker installed. Docker is going to be used to
-house the image/environment that is used for setting up the environment and building everything that needs to be made.
-This repository only contains shell scripts that are going to handle all the annoying parts of building for you.
+These scripts were made to be run in a linux environment where docker can be installed, so a wsl1 linux environment
+wouldn't work unfortunately.
+
+The only prerequisite for using the scripts in this repository is having repo and docker installed. Docker is going to
+be used to house the image/environment that is used for setting up the environment and building everything that needs to
+be made. This repository only contains shell scripts that are going to handle all the annoying parts of building for
+you.
+
+You can ensure this is the case by running the following script:
+
+```S
+./install_prerequisites.sh
+```
+
+This will install both Repo and docker for you
 
 ## Getting set up
 
