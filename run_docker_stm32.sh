@@ -27,6 +27,12 @@ check_url_OK() {
     grep "200 OK" --quiet < <(curl --silent --connect-timeout 1 --head $url_provided)
 }
 
+remove_special_chars() {
+    string=$1
+
+    echo "$string" | sed "s/-//g"
+}
+
 ################################################################################
 ## Main portion of the function                                               ##
 ################################################################################
@@ -106,14 +112,14 @@ if [ -f "$environment_file" ]; then
 fi
 
 # Generate the build directory name based on the Distro and Machine that we are building with
-yocto_build_dir="build-$DISTRO-$MACHINE"
+yocto_build_dir="build-$(remove_special_chars $DISTRO)-$(remove_special_chars $MACHINE)"
 
 # Generate the url that the specific distro is going to use for pulling the sstate cache
 sstate_cache_url="$sstate_cache_base_url/$yocto_build_dir/sstate-cache"
 
 # Check to see if the url to pull the sstate cache is actually up and good to pull from, if it isn't disable it to
 #  prevent a slowdown when compiling
-if check_url_OK $sstate_cache_url; then
+if check_url_OK $sstate_cache_url && [ -f "./$yocto_build_dir/conf/site.conf" ]; then
     echo "SSTATE cache is good, enabling it"
     # Enable SSTATE_MIRRORS if server is accessible
     sed -i 's/^# SSTATE_MIRRORS/SSTATE_MIRRORS/g' "./$yocto_build_dir/conf/site.conf"
