@@ -47,16 +47,19 @@ command=$2
 docker_image_name="yocto-build"
 container_name="yocto-build-cont"
 container_home_dir="/tmp"
-sstate_cache_url="http://192.168.1.100/oe-sstate-cache"
+sstate_cache_base_url="http://192.168.1.100"
 
 # TODO: BMG (Oct. 04, 2021) This is currently not used but at some point we are going to set this variable based on
 #  something to determine if we are a server node or not
 is_server=0
 
+docker_container_serve() {
+    docker run --name "apache-serve-cache" --rm -dit -v $PWD:/usr/local/apache2/htdocs/ httpd
+}
+
 base_docker_container_cmd() {
     docker run --rm -it                                     \
-        --name $container_name                              \
-        --env FORCE_SSTATE_CACHEPREFIX=$container_home_dir  \
+        --name "$container_name-$environment"               \
         --env FORCE_SSTATE_MIRROR_URL=$sstate_cache_url     \
         --env-file $environment_file                        \
         --user "$UID"                                       \
@@ -92,18 +95,32 @@ case $environment in
     # TODO: BMG (Sep. 30, 2021) This is probably not the right way to do this... Might want to change the order of the
     #  arguments that so the command comes first and the environment comes second
     "clean") clean_bitbake; exit ;;
-    "") help_dialog; exit;;
+    "serve") docker_container_serve; exit ;;
+    "" | "help" | "--help") help_dialog; exit;;
     *) echo "First argument isn't a valid environment to build"; exit ;;
 esac
 
+# Export the environment variables from the selected environment file
+if [ -f "$environment_file" ]; then
+    export $(cat $environment_file | xargs)
+fi
+
+# Generate the build directory name based on the Distro and Machine that we are building with
+yocto_build_dir="build-$DISTRO-$MACHINE"
+
+# Generate the url that the specific distro is going to use for pulling the sstate cache
+sstate_cache_url="$sstate_cache_base_url/$yocto_build_dir/sstate-cache"
+
+# Check to see if the url to pull the sstate cache is actually up and good to pull from, if it isn't disable it to
+#  prevent a slowdown when compiling
 if check_url_OK $sstate_cache_url; then
     echo "SSTATE cache is good, enabling it"
     # Enable SSTATE_MIRRORS if server is accessible
-    sed -i 's/^# SSTATE_MIRRORS/SSTATE_MIRRORS/g' build-openstlinuxweston-stm32mp1/conf/site.conf
+    sed -i 's/^# SSTATE_MIRRORS/SSTATE_MIRRORS/g' "./$yocto_build_dir/conf/site.conf"
 else
     echo "SSTATE cache not reachable, disabling it"
     # Disable SSTATE_MIRRORS if server is inaccesible
-    sed -i 's/^SSTATE_MIRRORS/# SSTATE_MIRRORS/g' build-openstlinuxweston-stm32mp1/conf/site.conf 
+    sed -i 's/^SSTATE_MIRRORS/# SSTATE_MIRRORS/g' "./$yocto_build_dir/conf/site.conf"
 fi
 
 # Run the correct docker run command based on what the argument that was passed through to this script is
