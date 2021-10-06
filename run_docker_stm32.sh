@@ -24,7 +24,7 @@ ensure_directory() {
 check_url_OK() {
     url_provided=$1
 
-    grep "200 OK" --quiet < <(curl --silent --head $url_provided)
+    grep "200 OK" --quiet < <(curl --silent --connect-timeout 1 --head $url_provided)
 }
 
 ################################################################################
@@ -95,6 +95,16 @@ case $environment in
     "") help_dialog; exit;;
     *) echo "First argument isn't a valid environment to build"; exit ;;
 esac
+
+if check_url_OK $sstate_cache_url; then
+    echo "SSTATE cache is good, enabling it"
+    # Enable SSTATE_MIRRORS if server is accessible
+    sed -i 's/^# SSTATE_MIRRORS/SSTATE_MIRRORS/g' build-openstlinuxweston-stm32mp1/conf/site.conf
+else
+    echo "SSTATE cache not reachable, disabling it"
+    # Disable SSTATE_MIRRORS if server is inaccesible
+    sed -i 's/^SSTATE_MIRRORS/# SSTATE_MIRRORS/g' build-openstlinuxweston-stm32mp1/conf/site.conf 
+fi
 
 # Run the correct docker run command based on what the argument that was passed through to this script is
 case $command in
